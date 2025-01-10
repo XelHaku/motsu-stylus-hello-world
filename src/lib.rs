@@ -26,7 +26,7 @@
 extern crate alloc;
 
 /// Import items from the SDK. The prelude contains common traits and macros.
-use stylus_sdk::{alloy_primitives::U256, prelude::*};
+use stylus_sdk::{alloy_primitives::U256, msg, prelude::*};
 
 // Define some persistent storage using the Solidity ABI.
 // `Counter` will be the entrypoint.
@@ -34,6 +34,11 @@ sol_storage! {
     #[entrypoint]
     pub struct Counter {
         uint256 number;
+    // Storage maps
+        mapping(address => uint256) number_mapping;
+
+        // Storage Vectors
+        uint256[] number_vector;
     }
 }
 
@@ -65,4 +70,28 @@ impl Counter {
         let number = self.number.get();
         self.set_number(number + U256::from(1));
     }
+
+    // Storage maps Functions
+
+    pub fn number_mapping(&self) -> U256 {
+        self.number_mapping.getter(msg::sender()).get()
+    }
+
+    pub fn set_number_mapping(&mut self, new_number: U256) {
+        let sender = msg::sender();
+
+        let mut  old_number = self.number_mapping.setter(sender);
+
+
+        old_number.set(new_number);
+    }
+
+    /// Increments `number` and updates its value in storage.
+    pub fn increment_mapping(&mut self) {
+        let number = self.number_mapping.getter(msg::sender()).get();
+        self.set_number_mapping(number + U256::from(1));
+    }
+
+    // Storage vectors Functions
+
 }
